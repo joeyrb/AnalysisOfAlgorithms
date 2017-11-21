@@ -19,7 +19,7 @@ int GCD(int a, int b) {
 	}
 }
 
-// Find d
+// Returns the value of D
 int GCD_ext(int a, int b, int &x, int &y) {
 	if (b == 0){
 		x = 1;
@@ -89,6 +89,8 @@ int* convertInput(int argc, char const *argv[]){
 	return nums;
 }
 
+// Gets the general keys from a list. Keys are specified
+// 		by the functions that call this one
 vector<int> getKey(vector<int> M, int v, int n) {
 	vector<int> key;
 	for (int i = 0; i < M.size(); ++i)
@@ -125,8 +127,9 @@ void printVals(int p, int q, int e, int d, int n){
 	printf("\np:%d | q:%d | e:%d | d:%d | n:%d\n", p,q,e,d,n);
 }
 
+// Prints the required format for D according to the assignment
 void printD(int d) {
-	printf("\nD:%5d\n", d);	
+	printf("D:%5d\n", d);	
 }
 
 // Prints the elements of the key
@@ -139,6 +142,7 @@ void printKey(vector<int> k, string msgStr="") {
 	cout << endl;
 }
 
+// Prints the integers of a key as characters
 void printKeyStr(vector<int> msg, string msgStr="") {
 	cout << msgStr;
 	for (int i = 0; i < msg.size(); ++i)
@@ -148,18 +152,17 @@ void printKeyStr(vector<int> msg, string msgStr="") {
 }
 
 // Get the encoded numbers from the command line
-vector<int> getCmdLine(int argc, char const *argv[]) {
+vector<int> getCLNums(int argc, char const *argv[]) {
 	vector<int> nums;
 	string n;
-	int intValue = 0;
+	int integer = 0;
 	for (int i = 5; i < argc; ++i)
 	{
 		n = argv[i];
 		stringstream number(n);
-		number >> intValue;
-		nums.push_back(intValue);
+		number >> integer;
+		nums.push_back(integer);
 	}
-	printKey(nums);
 	return nums;
 }
 
@@ -167,31 +170,36 @@ vector<int> getCmdLine(int argc, char const *argv[]) {
 ** TODO: 
 		* check range for e value compared to the message (n should be greater than all
 			ASCII values)
-		* print letters and numbers correctly (right now the numbers are printing as chars)
 ***************************************************************************************/
 int main(int argc, char const *argv[]) {
-	vector<int> Msg;
+	
 	// Check for correct usage, return if false
 	if (argc < 4) {
 		cout << "Usage: rsa.exe p q e my_text num1 num2 num3 ..." << endl;
 		return -1;
 	}
 
+	vector<int> Msg;
+	vector<int> cmdNums;
 	// Check for message text
-	if (argc > 4) {
+	if (argc == 4) {
 		Msg = getMy_Text(argc, argv);
-	} else {
+	}
+	// Check for extra numbers to be decoded
+	else if (argc > 4) {
+		Msg = getMy_Text(argc, argv);
+		cmdNums = getCLNums(argc, argv);		
+	}
+	else {
+		// default 'test' values
 		Msg.push_back('2');
 		Msg.push_back('5');
 		Msg.push_back('6');
 	}
-	// printKeyStr(Msg);
-	vector<int> cmdNums = getCmdLine(argc, argv);
 
 	int *nums = convertInput(argc, argv);		// Array of p, q, & e from input
 	int p = nums[0], q = nums[1], e = nums[2];	// Assign input to variables
 	delete nums;								// Deallocate unused space
-	
 	int x, y;
 	int n = p*q;
 	int t = (p-1)*(q-1);
@@ -207,19 +215,22 @@ int main(int argc, char const *argv[]) {
 		while(e*x < 0) x += t;
 	}
 	
-	printVals(p,q,e,x,n);
+	// printVals(p,q,e,x,n);	// test to verify necessary values
 	printD(x);
 
+	// Public Key
 	vector<int> C;					// cypher text
 	C = getPublicKey(Msg, e, n);
 	cout << "Encrypted (" << argv[4] << "): ";
 	printKey(C);
+	// Secret Key
 	vector<int> M;
 	M = getSecretKey(C, x, n);
-	printKey(M, "Decoding gives: ");
 	printKeyStr(M, "Decoding gives: ");
-	
-	cout << endl;
+	// Extra encoded integers
+	if (argc > 5) {
+		printKeyStr(getSecretKey(cmdNums, x, n), "Decoding command line gives: ");
+	}
 	return 0;
 }
 /***************************************************************************************/

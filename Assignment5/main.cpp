@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <vector>
 #include <limits>
@@ -42,6 +43,16 @@ int modMult(int a, int b, int n) {
 	return((a*b)%n);
 }
 
+int MOD_exp(int a, int b, int n) {
+	int d = 1;
+	for (int i = 1; i < b; ++i)
+	{
+		d = (d*a) % n;
+		cout << d << " ";
+	}cout << endl;
+	return d;
+}
+
 // Source: 
 // https://stackoverflow.com/questions/2177781/how-to-calculate-modulus-of-large-numbers
 int mod(int base, unsigned int exp, unsigned int mod) {
@@ -62,7 +73,7 @@ int mod(int base, unsigned int exp, unsigned int mod) {
 bool valid_E(int p, int q, int e){
 	bool result = false;
 	int n = (p-1)*(q-1);
-	if(n%e != 0 || (p*q) % e == 1)
+	if(n%e != 0 && GCD(p,e) == 1 && GCD(q,e) == 1)
 		result = true;
 	else
 		result = false;
@@ -99,25 +110,28 @@ vector<int> getSecretKey(vector<int> M, int d, int n) {
 
 // M
 // convert text to ASCII int and build return message
-vector<int> getMessage(int argc, char const *argv[]) {
+vector<int> getMy_Text(int argc, char const *argv[]) {
 	string m(argv[4]);
-	int ascii;
 	vector<int> msg;
 	for (int i = 0; i < m.length(); ++i)
 	{
-		ascii = m[i];
-		msg.push_back(ascii);
+		msg.push_back(m[i]);
 	}
 	return msg;
 }
 
 // Prints necessary values for finding P() and S()
 void printVals(int p, int q, int e, int d, int n){
-	printf("\np:%d | q:%d | e:%d | d:%d | n:%d\n\n", p,q,e,d,n);
+	printf("\np:%d | q:%d | e:%d | d:%d | n:%d\n", p,q,e,d,n);
+}
+
+void printD(int d) {
+	printf("\nD:%5d\n", d);	
 }
 
 // Prints the elements of the key
-void printKey(vector<int> k) {
+void printKey(vector<int> k, string msgStr="") {
+	cout << msgStr;
 	for (int i = 0; i < k.size(); ++i)
 	{
 		printf("%d ", k[i]);
@@ -125,17 +139,29 @@ void printKey(vector<int> k) {
 	cout << endl;
 }
 
-void printMsgStr(vector<int> msg) {
-	cout << "Message: ";
-	char alph;
+void printKeyStr(vector<int> msg, string msgStr="") {
+	cout << msgStr;
 	for (int i = 0; i < msg.size(); ++i)
 	{
-		alph = msg.at(i);
-		cout << alph;
+		printf("%c", msg.at(i));
 	} cout << endl;
 }
 
-
+// Get the encoded numbers from the command line
+vector<int> getCmdLine(int argc, char const *argv[]) {
+	vector<int> nums;
+	string n;
+	int intValue = 0;
+	for (int i = 5; i < argc; ++i)
+	{
+		n = argv[i];
+		stringstream number(n);
+		number >> intValue;
+		nums.push_back(intValue);
+	}
+	printKey(nums);
+	return nums;
+}
 
 /***************************************************************************************
 ** TODO: 
@@ -145,7 +171,6 @@ void printMsgStr(vector<int> msg) {
 ***************************************************************************************/
 int main(int argc, char const *argv[]) {
 	vector<int> Msg;
-
 	// Check for correct usage, return if false
 	if (argc < 4) {
 		cout << "Usage: rsa.exe p q e my_text num1 num2 num3 ..." << endl;
@@ -154,14 +179,14 @@ int main(int argc, char const *argv[]) {
 
 	// Check for message text
 	if (argc > 4) {
-		Msg = getMessage(argc, argv);
+		Msg = getMy_Text(argc, argv);
 	} else {
-		Msg.push_back(2);
-		Msg.push_back(5);
-		Msg.push_back(6);
+		Msg.push_back('2');
+		Msg.push_back('5');
+		Msg.push_back('6');
 	}
-	cout << "Msg: " << endl; printKey(Msg);
-	
+	// printKeyStr(Msg);
+	vector<int> cmdNums = getCmdLine(argc, argv);
 
 	int *nums = convertInput(argc, argv);		// Array of p, q, & e from input
 	int p = nums[0], q = nums[1], e = nums[2];	// Assign input to variables
@@ -183,17 +208,17 @@ int main(int argc, char const *argv[]) {
 	}
 	
 	printVals(p,q,e,x,n);
+	printD(x);
 
 	vector<int> C;					// cypher text
 	C = getPublicKey(Msg, e, n);
-	printf("Public Key: ");
+	cout << "Encrypted (" << argv[4] << "): ";
 	printKey(C);
 	vector<int> M;
 	M = getSecretKey(C, x, n);
-	printf("Secret Key: ");
-	printKey(M);
+	printKey(M, "Decoding gives: ");
+	printKeyStr(M, "Decoding gives: ");
 	
-	printMsgStr(M);
 	cout << endl;
 	return 0;
 }

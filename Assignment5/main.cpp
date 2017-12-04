@@ -1,16 +1,27 @@
+/********************************************************************************
+Author:				Joey Brown
+Assignment:			Assignment 5
+Date:				11/21/17
+Description:		Use GCD to encrypt and decrypt messages with RSA 
+Usage:				$> rsa.exe p q e my_text num1 num2 num3 ... numN
+Example:
+					$> ./rsa 7 17 5 abc 53 33 51
+					(Should output)...
+					D:     77
+					Encrypted (abc): 20 98 29
+					Decoding gives: abc
+					Decoding command line gives: def
+********************************************************************************/
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <cstdlib>
 #include <vector>
-#include <limits>
 #include <math.h>
 #include <cmath>
 using namespace std;
 
-float MAX_FLOAT = numeric_limits<float>().max();
-
-
+// Returns the greated common divisor between a & b
 int GCD(int a, int b) {
 	if (b == 0)
 		return a;
@@ -35,23 +46,23 @@ int GCD_ext(int a, int b, int &x, int &y) {
 	}
 }
 
-int modAdd(int a, int b, int n) {
-	return((a+b)%n);
-}
+// int modAdd(int a, int b, int n) {
+// 	return((a+b)%n);
+// }
 
-int modMult(int a, int b, int n) {
-	return((a*b)%n);
-}
+// int modMult(int a, int b, int n) {
+// 	return((a*b)%n);
+// }
 
-int MOD_exp(int a, int b, int n) {
-	int d = 1;
-	for (int i = 1; i < b; ++i)
-	{
-		d = (d*a) % n;
-		cout << d << " ";
-	}cout << endl;
-	return d;
-}
+// int MOD_exp(int a, int b, int n) {
+// 	int d = 1;
+// 	for (int i = 1; i < b; ++i)
+// 	{
+// 		d = (d*a) % n;
+// 		cout << d << " ";
+// 	}cout << endl;
+// 	return d;
+// }
 
 // Source: 
 // https://stackoverflow.com/questions/2177781/how-to-calculate-modulus-of-large-numbers
@@ -80,6 +91,7 @@ bool valid_E(int p, int q, int e){
 	return result;
 }
 
+// Converts p, q, & e from the command line
 int* convertInput(int argc, char const *argv[]){
 	int *nums = new int[3];
 	for (int i = 1; i < 4; ++i)
@@ -110,8 +122,7 @@ vector<int> getSecretKey(vector<int> M, int d, int n) {
 	return getKey(M, d, n);
 }
 
-// M
-// convert text to ASCII int and build return message
+// Returns a key from my_text received from the user input
 vector<int> getMy_Text(int argc, char const *argv[]) {
 	string m(argv[4]);
 	vector<int> msg;
@@ -120,6 +131,21 @@ vector<int> getMy_Text(int argc, char const *argv[]) {
 		msg.push_back(m[i]);
 	}
 	return msg;
+}
+
+// Get the encoded numbers from the command line
+vector<int> getCLNums(int argc, char const *argv[]) {
+	vector<int> nums;
+	string n;
+	int integer = 0;
+	for (int i = 5; i < argc; ++i)
+	{
+		n = argv[i];
+		stringstream number(n);
+		number >> integer;
+		nums.push_back(integer);
+	}
+	return nums;
 }
 
 // Prints necessary values for finding P() and S()
@@ -151,20 +177,7 @@ void printKeyStr(vector<int> msg, string msgStr="") {
 	} cout << endl;
 }
 
-// Get the encoded numbers from the command line
-vector<int> getCLNums(int argc, char const *argv[]) {
-	vector<int> nums;
-	string n;
-	int integer = 0;
-	for (int i = 5; i < argc; ++i)
-	{
-		n = argv[i];
-		stringstream number(n);
-		number >> integer;
-		nums.push_back(integer);
-	}
-	return nums;
-}
+
 
 /***************************************************************************************
 ** TODO: 
@@ -214,8 +227,6 @@ int main(int argc, char const *argv[]) {
 		d = GCD_ext(e, t, x, y);
 		while(e*x < 0) x += t;
 	}
-	
-	// printVals(p,q,e,x,n);	// test to verify necessary values
 	printD(x);
 
 	// Public Key
